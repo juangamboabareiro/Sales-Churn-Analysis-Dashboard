@@ -82,6 +82,9 @@ ORDER BY mes;
 
 Se analiza la evolución mensual de ventas y ganancias para observar si existe estacionalidad o periodos de caida/crecimiento
 
+<p align="center">
+  <img src="1.png" width="500">
+</p>
 
 
 ### Descuentos y rentabilidad
@@ -95,61 +98,24 @@ GROUP BY discount
 HAVING AVG(profit) < 0;
 ```
 
+Se observa como los descuentos impactan en las ganancias
 
-Este análisis muestra que:
-
-ciertos niveles de descuento generan pérdidas promedio
-
-más ventas no implican necesariamente mayor rentabilidad
-
+<p align="center">
+  <img src="2.png" width="500">
+</p>
 
 
+Se concluye que ciertos niveles de descuento generan pérdidas y que más ventas no implican mayor rentabilidad
 
-
-### Rentabilidad por producto y categoría
-
-Se analiza qué categorías y subcategorías:
-
-concentran ganancias
-
-presentan márgenes negativos
-
-Esto permite detectar:
-
-productos problemáticos
-
-líneas que venden mucho pero erosionan el margen
-
-
-
-👤 Análisis a Nivel Cliente
-
-
-Rentabilidad por cliente
-
-
-``` sql
-CREATE VIEW view_ganancia_consumidor AS
-SELECT
-  customer_id,
-  SUM(profit) AS ganancias_totales,
-  SUM(sales) AS ventas_totales,
-  COUNT(DISTINCT order_id) AS ordenes_totales
-FROM orders
-GROUP BY customer_id;
-```
-
-
-Esta vista resume el valor económico total de cada cliente.
 
 
 
 
 ### Definición de Churn
 
-El churn se define como inactividad del cliente.
+El churn se define como inactividad del cliente
 
-Un cliente se considera churned si su última compra ocurrió más de 90 días antes de la fecha máxima del dataset.
+Un cliente se considera churned si su última compra ocurrió más de 90 días antes de la fecha máxima del dataset
 
 
 ``` sql
@@ -173,19 +139,14 @@ FROM ultima_actividad;
 ```
 
 
-churned = 1 → cliente inactivo
-
-churned = 0 → cliente activo
-
-Este enfoque es común en análisis reales cuando no existe una cancelación explícita.
-
+- churned = 1 → Cliente inactivo
+- churned = 0 → Cliente activo
 
 
 
 
 ### Churn por Segmento y Región
 
-Ejemplo por segmento:
 
 
 ``` sql
@@ -197,14 +158,12 @@ JOIN customers c ON c.customer_id = vch.customer_id
 GROUP BY c.segment;
 ```
 
-
-Esto permite identificar:
-
-segmentos con mayor propensión al churn
-
-diferencias estructurales entre tipos de clientes
+<p align="center">
+  <img src="3.png" width="500">
+</p>
 
 
+Se observa que el segmento home office es el de mayor churn
 
 
 ### Churn vs Rentabilidad
@@ -221,17 +180,17 @@ GROUP BY ch.churned;
 ```
 
 
-Este cruce muestra que:
 
-no todo churn tiene el mismo impacto económico
-
-perder clientes de alta ganancia es mucho más costoso que perder clientes no rentables
-
+<p align="center">
+  <img src="4.png" width="500">
+</p>
 
 
+Se observa una gran perdida de clientes con una ganancia promedio significativa
 
 
-### Vista Analítica Final
+
+### Vistas Finales
 
 
 ``` sql
@@ -254,37 +213,38 @@ LEFT JOIN view_churn ch ON c.customer_id = ch.customer_id
 LEFT JOIN view_ganancia_consumidor gc ON c.customer_id = gc.customer_id;
 ```
 
-Esta vista:
 
-integra churn + valor económico
-
-queda lista para consumo directo en Tableau
-
-representa el dataset final del proyecto
 
 
 
 
 ## Visualización en Tableau
 
-El dashboard se construye a partir de view_analisis_churn e incluye:
+<p align="center">
+  <img src="Dashboard.png" width="500">
+</p>
 
-KPIs de churn y ganancias
-
-churn por segmento
-
-churn vs ganancia total
-
-identificación de churn económicamente riesgoso
-
-El foco está en priorizar decisiones, no en reducir churn de forma indiscriminada.
+- KPIs de ordenes, sales y ganancias
+- churn por segmento
+- churn vs ganancia total
+- identificación de churn riesgoso
 
 
+Se exploran diferencias por segmento y ciudad que permite identificar lod grupos de clientes que son mas propensos a dejar de comprar. A traves de un análisis entre rentabilidad y churn, se distinguen perdidas de clientes que representan poco valor y pérdidas de clientes que generan ganancias. Se observan clientes de alta rentabilidad que churnearon, lo cual representa un riesgo grande. Por lo tanto, no todo churn es perjudicial y esta metrica por si sola no es indicadora de riesgo.
 
+
+Link al Dashboard: https://public.tableau.com/views/Sales_Churn_Analysis_Dashboard/Dashboard?:language=es-ES&:sid=&:redirect=auth&:display_count=n&:origin=viz_share_link
 
 
 
 ## Conclusiones
 
-El churn no es un problema en sí mismo.
-El verdadero riesgo está en perder clientes que generan valor.
+El churn por si mismo no es una metrica de riesgo. El riesgo está en perder clientes que generan valor, es decir, clientes de alto impacto que churnean. 
+
+
+## Posibles medidas a tomar
+
+- Priorizar retención de clientes de alta ganancia
+- Reducir esfuerzos sobre churn de bajo valor
+- Analizar políticas de descuento (Del EDA se observa que algunos descuentos generan ganacias negativas)
+- Diseñar estrategias diferenciadas por segmento y región
